@@ -1,61 +1,33 @@
-//import { useState, useEffect } from "react";
 import { useState } from "react";
-import { useSelector } from "react-redux";
-import { useQuery } from "@tanstack/react-query";
-// import AdoptedPetContext from "./AdoptedPetContext";
-// import Pet from "./Pet";
-import useBreedList from "./useBreedList";
-import fetchSearch from "./fetchSearch";
+import { useSelector, useDispatch } from "react-redux";
+import { all } from "./searchParamsSlice";
 import Results from "./Results";
+import useBreedList from "./useBreedList";
+import { useSearchQuery } from "./petApiService";
 const ANIMALS = ["bird", "cat", "dog", "rabbit", "reptile"];
 
 const SearchParams = () => {
-  //const location = "Seattle, WA";
-  //const [location, setLocation] = useState("");
-  //const [breed, setBreed] = useState("");
-
-  const [requestParams, setRequestParams] = useState({
-    location: "",
-    animal: "",
-    breed: "",
-  });
-  const adoptedPet = useSelector((state) => state.adoptedPet.value);
   const [animal, setAnimal] = useState("");
-  //const [pets, setPets] = useState([]);
   const [breeds] = useBreedList(animal);
-  // const [adoptedPet] = useContext(AdoptedPetContext);
+  const dispatch = useDispatch();
+  const adoptedPet = useSelector((state) => state.adoptedPet.value);
+  const searchParams = useSelector((state) => state.searchParams.value);
 
-  const results = useQuery(["search", requestParams], fetchSearch);
-  const pets = results?.data?.pets ?? [];
-
-  // useEffect(() => {
-  //   requestPets();
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
-
-  // async function requestPets() {
-  //   const res = await fetch(
-  //     `http://pets-v2.dev-apis.com/pets?animal=${animal}&location=${location}&breed=${breed}
-  //     `
-  //   );
-  //   const json = await res.json();
-
-  //   setPets(json.pets);
-  // }
+  let { data: pets } = useSearchQuery(searchParams);
+  pets = pets ?? [];
 
   return (
     <div className="search-params">
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          //requestPets();
           const formData = new FormData(e.target);
           const obj = {
             animal: formData.get("animal") ?? "",
             breed: formData.get("breed") ?? "",
             location: formData.get("location") ?? "",
           };
-          setRequestParams(obj);
+          dispatch(all(obj));
         }}
       >
         {adoptedPet ? (
@@ -65,47 +37,42 @@ const SearchParams = () => {
         ) : null}
         <label htmlFor="location">
           Location
-          <input
-            name="location"
-            //onChange={(e) => setLocation(e.target.value)}
-            id="location"
-            // value={location}
-            placeholder="Location"
-          />
+          <input id="location" name="location" placeholder="Location" />
         </label>
+
         <label htmlFor="animal">
           Animal
           <select
             id="animal"
-            value={animal}
+            name="animal"
             onChange={(e) => {
               setAnimal(e.target.value);
-              // setBreed("");
+            }}
+            onBlur={(e) => {
+              setAnimal(e.target.value);
             }}
           >
             <option />
             {ANIMALS.map((animal) => (
-              <option key={animal}>{animal}</option>
+              <option key={animal} value={animal}>
+                {animal}
+              </option>
             ))}
           </select>
         </label>
+
         <label htmlFor="breed">
           Breed
-          <select
-            id="breed"
-            disabled={breeds.length === 0}
-            name="breed"
-            // value={breed}
-            // onChange={(e) => {
-            //   setBreed(e.target.value);
-            // }}
-          >
+          <select disabled={!breeds.length} id="breed" name="breed">
             <option />
             {breeds.map((breed) => (
-              <option key={breed}>{breed}</option>
+              <option key={breed} value={breed}>
+                {breed}
+              </option>
             ))}
           </select>
         </label>
+
         <button>Submit</button>
       </form>
       <Results pets={pets} />

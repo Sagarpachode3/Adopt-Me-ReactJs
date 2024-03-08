@@ -1,12 +1,13 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+// import { useQuery } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
+import { useGetPetQuery } from "./petApiService";
 import { adopt } from "./adoptedPetSlice";
 // import AdoptedPetContext from "./AdoptedPetContext";
 import ErrorBoundary from "./ErrorBoundary";
 import Carousel from "./Carousel";
-import fetchPet from "./fetchPet";
+// import fetchPet from "./fetchPet";
 import Modal from "./Modal";
 
 const Details = () => {
@@ -17,10 +18,11 @@ const Details = () => {
   // const [_, setAdoptedPet] = useContext(AdoptedPetContext);
 
   const { id } = useParams();
-  const results = useQuery(["details", id], fetchPet);
+  // const results = useQuery(["details", id], fetchPet);
+  const { isLoading, data: pet } = useGetPetQuery(id);
   const dispatch = useDispatch();
 
-  if (results.isLoading) {
+  if (isLoading) {
     return (
       <div className="loading-pane">
         <h2 className="loader">🌀</h2>
@@ -28,7 +30,7 @@ const Details = () => {
     );
   }
 
-  const pet = results.data.pets[0];
+  // const pet = results.data.pets[0];
 
   return (
     <div className="details">
